@@ -17,7 +17,7 @@ from pedalboard.io import AudioFile
 from torchaudio import transforms as T
 from typing import Optional, Callable, List
 
-from .utils import Stereo, Mono, PhaseFlipper, PadCrop_Normalized_T
+from .utils import Stereo, Mono, Spatial, PhaseFlipper, PadCrop_Normalized_T
 
 AUDIO_KEYS = ("flac", "wav", "mp3", "m4a", "ogg", "opus")
 
@@ -145,6 +145,7 @@ class SampleDataset(torch.utils.data.Dataset):
         self.encoding = torch.nn.Sequential(
             Stereo() if self.force_channels == "stereo" else torch.nn.Identity(),
             Mono() if self.force_channels == "mono" else torch.nn.Identity(),
+            Spatial() if self.force_channels == "spatial" else torch.nn.Identity(),
         )
 
         self.sr = sample_rate
@@ -561,6 +562,8 @@ def create_dataloader_from_config(dataset_config, batch_size, sample_size, sampl
 
     if audio_channels == 1:
         force_channels = "mono"
+    elif audio_channels == 4:
+        force_channels = "spatial"
     else:
         force_channels = "stereo"
 

@@ -160,7 +160,10 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
 
             # Reconstruction loss
             self.gen_loss_modules += [
-                AuralossLoss(self.sdstft, 'reals', 'decoded', name='mrstft_loss', weight=self.loss_config['spectral']['weights']['mrstft']),
+                AuralossLoss(self.sdstft, 'reals_w', 'decoded_w', name='mrstft_loss_w', weight=self.loss_config['spectral']['weights']['mrstft']/4),
+                AuralossLoss(self.sdstft, 'reals_x', 'decoded_x', name='mrstft_loss_x', weight=self.loss_config['spectral']['weights']['mrstft']/4),
+                AuralossLoss(self.sdstft, 'reals_y', 'decoded_y', name='mrstft_loss_y', weight=self.loss_config['spectral']['weights']['mrstft']/4),
+                AuralossLoss(self.sdstft, 'reals_z', 'decoded_z', name='mrstft_loss_z', weight=self.loss_config['spectral']['weights']['mrstft']/4),
             ]
 
             if self.autoencoder.out_channels == 2:
@@ -171,10 +174,11 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
                     AuralossLoss(self.lrstft, 'reals_right', 'decoded_right', name='stft_loss_right', weight=self.loss_config['spectral']['weights']['mrstft']/2),
                 ]
 
+            """
             self.gen_loss_modules += [
                 AuralossLoss(self.sdstft, 'reals', 'decoded', name='mrstft_loss', weight=self.loss_config['spectral']['weights']['mrstft']),
             ]
-
+            """
         if self.loss_config['time']['weights']['l1'] > 0.0:
             self.gen_loss_modules.append(L1Loss(key_a='reals', key_b='decoded', weight=self.loss_config['time']['weights']['l1'], name='l1_time_loss'))
 
@@ -222,8 +226,10 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
         reals, _ = batch
 
         # Remove extra dimension added by WebDataset
+        """
         if reals.ndim == 4 and reals.shape[0] == 1:
             reals = reals[0]
+        """
 
         if self.global_step >= self.warmup_steps:
             self.warmed_up = True
@@ -271,6 +277,15 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
             loss_info["decoded_right"] = decoded[:, 1:2, :]
             loss_info["reals_left"] = reals[:, 0:1, :]
             loss_info["reals_right"] = reals[:, 1:2, :]
+        elif self.autoencoder.out_channels == 4:
+            loss_info["decoded_w"] = decoded[:, 0:1, :]
+            loss_info["decoded_x"] = decoded[:, 1:2, :]
+            loss_info["decoded_y"] = decoded[:, 2:3, :]
+            loss_info["decoded_z"] = decoded[:, 3:4, :]
+            loss_info["reals_w"] = reals[:, 0:1, :]
+            loss_info["reals_x"] = reals[:, 1:2, :]
+            loss_info["reals_y"] = reals[:, 2:3, :]
+            loss_info["reals_z"] = reals[:, 3:4, :]
 
         # Distillation
         if self.teacher_model is not None:
@@ -392,9 +407,10 @@ class AutoencoderDemoCallback(pl.Callback):
             demo_reals, _ = next(self.demo_dl)
 
             # Remove extra dimension added by WebDataset
+            """
             if demo_reals.ndim == 4 and demo_reals.shape[0] == 1:
                 demo_reals = demo_reals[0]
-
+            """
             encoder_input = demo_reals
             
             encoder_input = encoder_input.to(module.device)

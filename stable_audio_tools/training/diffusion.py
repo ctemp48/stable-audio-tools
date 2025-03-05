@@ -313,9 +313,11 @@ class DiffusionCondTrainingWrapper(pl.LightningModule):
 
         p = Profiler()
 
+        """
         if reals.ndim == 4 and reals.shape[0] == 1:
             reals = reals[0]
-
+        """
+        
         loss_info = {}
 
         diffusion_input = reals

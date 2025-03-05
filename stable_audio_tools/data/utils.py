@@ -94,3 +94,7 @@ class Stereo(nn.Module):
             signal = signal[:2, :]    
 
     return signal
+
+class Spatial(nn.Module):
+    def _call_(self, signal):
+        return signal
