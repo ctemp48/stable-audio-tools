@@ -183,11 +183,10 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
 
             # Reconstruction loss
             self.gen_loss_modules += [
-                AuralossLoss(self.sdstft, 'reals_w', 'decoded_w', name='mrstft_loss_w', weight=self.loss_config['spectral']['weights']['mrstft']/4),
-                AuralossLoss(self.sdstft, 'reals_x', 'decoded_x', name='mrstft_loss_x', weight=self.loss_config['spectral']['weights']['mrstft']/4),
-                AuralossLoss(self.sdstft, 'reals_y', 'decoded_y', name='mrstft_loss_y', weight=self.loss_config['spectral']['weights']['mrstft']/4),
-                AuralossLoss(self.sdstft, 'reals_z', 'decoded_z', name='mrstft_loss_z', weight=self.loss_config['spectral']['weights']['mrstft']/4),
-                #AuralossLoss(self.sdstft, target_key = 'reals', input_key = 'decoded', name='mrstft_loss', weight=self.loss_config['spectral']['weights']['mrstft'], decay = stft_loss_decay),
+                AuralossLoss(self.sdstft, target_key = 'reals_w', input_key = 'decoded_w', name='mrstft_loss_w', weight=self.loss_config['spectral']['weights']['mrstft']/4, decay = stft_loss_decay),
+                AuralossLoss(self.sdstft, target_key = 'reals_x', input_key = 'decoded_x', name='mrstft_loss_x', weight=self.loss_config['spectral']['weights']['mrstft']/4, decay = stft_loss_decay),
+                AuralossLoss(self.sdstft, target_key = 'reals_y', input_key = 'decoded_y', name='mrstft_loss_y', weight=self.loss_config['spectral']['weights']['mrstft']/4, decay = stft_loss_decay),
+                AuralossLoss(self.sdstft, target_key = 'reals_z', input_key = 'decoded_z', name='mrstft_loss_z', weight=self.loss_config['spectral']['weights']['mrstft']/4, decay = stft_loss_decay),
             ]
 
             if self.autoencoder.out_channels == 2:
@@ -197,13 +196,6 @@ class AutoencoderTrainingWrapper(pl.LightningModule):
                     AuralossLoss(self.lrstft, target_key = 'reals_right', input_key = 'decoded_right', name='stft_loss_right', weight=self.loss_config['spectral']['weights']['mrstft']/2, decay = stft_loss_decay),
                 ]
 
-            """
-            self.gen_loss_modules += [
-                AuralossLoss(self.sdstft, 'reals', 'decoded', name='mrstft_loss', weight=self.loss_config['spectral']['weights']['mrstft']),
-            ]
-            """
-        if self.loss_config['time']['weights']['l1'] > 0.0:
-            self.gen_loss_modules.append(L1Loss(key_a='reals', key_b='decoded', weight=self.loss_config['time']['weights']['l1'], name='l1_time_loss'))
         if "mrmel" in loss_config:
             mrmel_weight = loss_config["mrmel"]["weights"]["mrmel"]
             if mrmel_weight > 0:
